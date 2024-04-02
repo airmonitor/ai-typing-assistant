@@ -1,10 +1,12 @@
 import time
+
 from string import Template
 
 import httpx
 import pyperclip
+
 from pynput import keyboard
-from pynput.keyboard import Key, Controller
+from pynput.keyboard import Controller, Key
 
 controller = Controller()
 
@@ -16,7 +18,10 @@ OLLAMA_CONFIG = {
 }
 
 PROMPT_TEMPLATE = Template(
-    """Your task is to take the text provided and rewrite it into a clear, grammatically correct version while preserving the original meaning as closely as possible. Correct any spelling mistakes, punctuation errors, verb tense issues, word choice problems, and other grammatical mistakes, preserve all new line characters:
+    """Your task is to take the text provided and rewrite it into a clear,
+    grammatically correct version while preserving the original meaning as closely as possible.
+    Correct any spelling mistakes, punctuation errors, verb tense issues, word choice problems,
+    and other grammatical mistakes, preserve all new line characters:
 
 $text
 
@@ -25,11 +30,12 @@ Return only the corrected text, don't include a preamble.
 )
 
 PROMPT_TEMPLATE_FOR_OFFICIAL_MESSAGE = Template(
-    """Your task is to take the text provided and rewrite the below message to be more official, polite and friendly., 
-    The output must be clear, grammatically correct version while preserving the original meaning as closely as possible. 
-    Correct any spelling mistakes, punctuation errors, verb tense issues, word choice problems, 
+    """Your task is to take the text provided and rewrite the below message to be more official, polite and friendly.,
+    The output must be clear,
+    grammatically correct version while preserving the original meaning as closely as possible.
+    Correct any spelling mistakes, punctuation errors, verb tense issues, word choice problems,
     and other grammatical mistakes, preserve all new line characters.
-    Avoid using word kindly.
+    Avoid using word kindly:
 
 $text
 
