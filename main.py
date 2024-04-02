@@ -28,7 +28,8 @@ PROMPT_TEMPLATE_FOR_OFFICIAL_MESSAGE = Template(
     """Your task is to take the text provided and rewrite the below message to be more official, polite and friendly., 
     The output must be clear, grammatically correct version while preserving the original meaning as closely as possible. 
     Correct any spelling mistakes, punctuation errors, verb tense issues, word choice problems, 
-    and other grammatical mistakes, preserve all new line characters:
+    and other grammatical mistakes, preserve all new line characters.
+    Avoid using word kindly.
 
 $text
 
@@ -65,20 +66,7 @@ def rewrite_official_text(text):
     return response.json()["response"].strip()
 
 
-def fix_current_line():
-    # macOS short cut to select current line: Cmd+Shift+Left
-    controller.press(Key.cmd)
-    controller.press(Key.shift)
-    controller.press(Key.left)
-
-    controller.release(Key.cmd)
-    controller.release(Key.shift)
-    controller.release(Key.left)
-
-    fix_selection()
-
-
-def fix_selection():
+def rewrite_selection():
     # 1. Copy selection to clipboard
     with controller.pressed(Key.cmd):
         controller.tap("c")
@@ -133,7 +121,7 @@ def on_f9():
 
 
 def on_f10():
-    fix_selection()
+    rewrite_selection()
 
 
 with keyboard.GlobalHotKeys({"<101>": on_f9, "<109>": on_f10}) as h:
