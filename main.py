@@ -2,18 +2,19 @@ import time
 
 from string import Template
 
-import httpx
+import ollama
 import pyperclip
 
 from pynput import keyboard
 from pynput.keyboard import Controller, Key
 
+CLIENT = ollama.Client(host="http://localhost:11434", timeout=30)
+MODEL = "mistral:7b-instruct-v0.2-q6_K"
 controller = Controller()
 
-OLLAMA_ENDPOINT = "http://localhost:11434/api/generate"
 OLLAMA_CONFIG = {
-    "model": "mistral:7b-instruct-v0.2-q5_K_M",
-    "keep_alive": "5m",
+    "model": "mistral:7b-instruct-v0.2-q6_K",
+    "keep_alive": "120m",
     "stream": False,
 }
 
@@ -46,30 +47,16 @@ Return only the corrected text, don't include a preamble.
 
 def fix_text(text):
     prompt = PROMPT_TEMPLATE.substitute(text=text)
-    response = httpx.post(
-        OLLAMA_ENDPOINT,
-        json={"prompt": prompt, **OLLAMA_CONFIG},
-        headers={"Content-Type": "application/json"},
-        timeout=30,
-    )
-    if response.status_code != 200:
-        print("Error", response.status_code)
-        return None
-    return response.json()["response"].strip()
+    response = CLIENT.chat(model=MODEL, messages=[{"role": "user", "content": prompt}])
+    _return_value: str = response["message"]["content"].strip()
+    return _return_value.removeprefix('"').removesuffix('"')
 
 
 def rewrite_official_text(text):
     prompt = PROMPT_TEMPLATE_FOR_OFFICIAL_MESSAGE.substitute(text=text)
-    response = httpx.post(
-        OLLAMA_ENDPOINT,
-        json={"prompt": prompt, **OLLAMA_CONFIG},
-        headers={"Content-Type": "application/json"},
-        timeout=30,
-    )
-    if response.status_code != 200:
-        print("Error", response.status_code)
-        return None
-    return response.json()["response"].strip()
+    response = CLIENT.chat(model=MODEL, messages=[{"role": "user", "content": prompt}])
+    _return_value: str = response["message"]["content"].strip()
+    return _return_value.removeprefix('"').removesuffix('"')
 
 
 def rewrite_selection():
