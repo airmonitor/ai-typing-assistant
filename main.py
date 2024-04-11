@@ -10,13 +10,8 @@ from pynput.keyboard import Controller, Key
 
 CLIENT = ollama.Client(host="http://localhost:11434", timeout=30)
 MODEL = "mistral:7b-instruct-v0.2-q6_K"
-controller = Controller()
+CONTROLLER = Controller()
 
-OLLAMA_CONFIG = {
-    "model": "mistral:7b-instruct-v0.2-q6_K",
-    "keep_alive": "120m",
-    "stream": False,
-}
 
 PROMPT_TEMPLATE = Template(
     """Your task is to take the text provided and rewrite it into a clear,
@@ -61,8 +56,8 @@ def rewrite_official_text(text):
 
 def rewrite_selection():
     # 1. Copy selection to clipboard
-    with controller.pressed(Key.cmd):
-        controller.tap("c")
+    with CONTROLLER.pressed(Key.cmd):
+        CONTROLLER.tap("c")
 
     # 2. Get the clipboard string
     time.sleep(0.1)
@@ -80,14 +75,14 @@ def rewrite_selection():
     time.sleep(0.1)
 
     # 5. Paste the clipboard and replace the selected text
-    with controller.pressed(Key.cmd):
-        controller.tap("v")
+    with CONTROLLER.pressed(Key.cmd):
+        CONTROLLER.tap("v")
 
 
 def fix_typos():
     # 1. Copy selection to clipboard
-    with controller.pressed(Key.cmd):
-        controller.tap("c")
+    with CONTROLLER.pressed(Key.cmd):
+        CONTROLLER.tap("c")
 
     # 2. Get the clipboard string
     time.sleep(0.1)
@@ -105,8 +100,8 @@ def fix_typos():
     time.sleep(0.1)
 
     # 5. Paste the clipboard and replace the selected text
-    with controller.pressed(Key.cmd):
-        controller.tap("v")
+    with CONTROLLER.pressed(Key.cmd):
+        CONTROLLER.tap("v")
 
 
 def on_f9():
