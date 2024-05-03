@@ -8,8 +8,8 @@ import pyperclip
 from pynput import keyboard
 from pynput.keyboard import Controller, Key
 
-CLIENT = ollama.Client(host="http://localhost:11434", timeout=30)
-MODEL = "mistral:7b-instruct-v0.2-q6_K"
+CLIENT = ollama.Client(host="http://localhost:11434", timeout=60)
+MODEL = "llama3:8b-instruct-q6_K"
 CONTROLLER = Controller()
 
 
@@ -42,7 +42,7 @@ Return only the corrected text, don't include a preamble.
 
 def fix_text(text):
     prompt = PROMPT_TEMPLATE.substitute(text=text)
-    response = CLIENT.chat(model=MODEL, messages=[{"role": "user", "content": prompt}])
+    response = CLIENT.chat(model=MODEL, messages=[{"role": "user", "content": prompt}], keep_alive=3600)
     _return_value: str = response["message"]["content"].strip()
     return _return_value.removeprefix('"').removesuffix('"')
 
