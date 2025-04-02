@@ -1,5 +1,5 @@
 import time
-
+from os import environ
 from string import Template
 
 import ollama
@@ -7,9 +7,17 @@ import pyperclip
 
 from pynput import keyboard
 from pynput.keyboard import Controller, Key
+environ['NO_PROXY'] = 'localhost'
+environ['HTTP_PROXY'] = ""
+environ['HTTPS_PROXY'] = ""
 
-CLIENT = ollama.Client(host="http://localhost:11434", timeout=60)
-MODEL = "llama3:8b-instruct-q6_K"
+CLIENT = ollama.Client(host="http://localhost:11434", timeout=180)
+# MODEL = "granite3-dense:8b-instruct-q8_0"
+# MODEL = "mistral-nemo:12b-instruct-2407-q6_K"
+# MODEL = "phi3:14b-medium-128k-instruct-q6_K"
+# MODEL = "phi4:14b-q8_0"
+MODEL = "mistral-small:24b-instruct-2501-q8_0"
+# MODEL = "MHKetbi/Mistral-Small3.1-24B-Instruct-2503:q6_K_L"
 CONTROLLER = Controller()
 
 
