@@ -1,4 +1,5 @@
 import time
+
 from os import environ
 from string import Template
 
@@ -7,19 +8,14 @@ import pyperclip
 
 from pynput import keyboard
 from pynput.keyboard import Controller, Key
-environ['NO_PROXY'] = 'localhost'
-environ['HTTP_PROXY'] = ""
-environ['HTTPS_PROXY'] = ""
+
+environ["NO_PROXY"] = "localhost"
+environ["HTTP_PROXY"] = ""
+environ["HTTPS_PROXY"] = ""
 
 CLIENT = ollama.Client(host="http://localhost:11434", timeout=180)
-# MODEL = "granite3-dense:8b-instruct-q8_0"
-# MODEL = "mistral-nemo:12b-instruct-2407-q6_K"
-# MODEL = "phi3:14b-medium-128k-instruct-q6_K"
-# MODEL = "phi4:14b-q8_0"
 MODEL = "mistral-small:24b-instruct-2501-q8_0"
-# MODEL = "MHKetbi/Mistral-Small3.1-24B-Instruct-2503:q6_K_L"
 CONTROLLER = Controller()
-
 
 PROMPT_TEMPLATE = Template(
     """Your task is to take the text provided and rewrite it into a clear,
@@ -34,17 +30,25 @@ Return only the corrected text, don't include a preamble.
 )
 
 PROMPT_TEMPLATE_FOR_OFFICIAL_MESSAGE = Template(
-    """Your task is to take the text provided and rewrite the below message to be more official, polite and friendly.,
-    The output must be clear,
-    grammatically correct version while preserving the original meaning as closely as possible.
-    Correct any spelling mistakes, punctuation errors, verb tense issues, word choice problems,
-    and other grammatical mistakes, preserve all new line characters.
-    Avoid using word kindly:
+    """
+    You are a professional communication editor specializing in formal business correspondence.
+    Your task is to transform the provided text into a more professional, polite, and approachable message.
 
-$text
+    Instructions:
+    1. Rewrite the text to be more official while maintaining a warm, friendly tone
+    2. Ensure perfect grammar, spelling, and punctuation
+    3. Improve word choice and sentence structure for clarity and professionalism
+    4. Preserve the original meaning and intent completely
+    5. Maintain all paragraph breaks and formatting structure
+    6. Avoid using the word "kindly" - use more varied professional alternatives
+    7. Ensure proper verb tense consistency throughout
+    8. Optimize for readability and conciseness
 
-Return only the corrected text, don't include a preamble.
-"""
+    Input:
+    $text
+
+    Output only the refined text without explanations, comments, or introductory statements.
+    """
 )
 
 
