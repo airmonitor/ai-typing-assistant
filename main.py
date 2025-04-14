@@ -14,7 +14,9 @@ environ["HTTP_PROXY"] = ""
 environ["HTTPS_PROXY"] = ""
 
 CLIENT = ollama.Client(host="http://localhost:11434", timeout=180)
-MODEL = "mistral-small:24b-instruct-2501-q8_0"
+# MODEL = "phi4:14b-q8_0"
+# MODEL = "mistral-small:24b-instruct-2501-q8_0"
+MODEL = "mistral-small3.1:24b-instruct-2503-q8_0"
 CONTROLLER = Controller()
 
 PROMPT_TEMPLATE = Template(

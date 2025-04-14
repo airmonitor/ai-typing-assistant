@@ -1,42 +1,31 @@
-# Makefile for setting up and activating a Python virtual environment
-
 # Set the desired Python interpreter (change if needed)
-PYTHON := python3.11
-
-# Virtual environment directory
+PYTHON := python3.13
 VENV := .venv
-
 STAGE?=ppe
 
-# Default target
-all: venv activate install
+.PHONY: all venv activate test clean pre-commit update help
 
-# Create the virtual environment
-venv:
-	@echo "Creating Python virtual environment..."
-	$(PYTHON) -m venv $(VENV)
+all: venv activate install # Initialize complete development environment
 
-# Activate the virtual environment
-activate:
-	@echo "Activating Python virtual environment..."
-	@echo "Run 'deactivate' to exit the virtual environment."
+venv: # Create new Python virtual environment
+	uv venv --seed --python $(PYTHON) $(VENV)
+
+activate: # Activate Python virtual environment
 	@. $(VENV)/bin/activate
 
-install:
-	@echo "Installing dependencies from requirements files"
+install: # Install all project dependencies and development tools
 	pip install --upgrade pip
-	pip install -r requirements.txt
-	pip install -r requirements-dev.txt
-	pip install pre-commit pytest pytest-snapshot
+	pip install uv
+	uv pip install --upgrade pip
+	uv pip install -r requirements.txt
+	uv pip install pre-commit pytest pytest-snapshot
 
-
-pre-commit:
-	@echo "Running pre-commit"
+pre-commit: # Run code quality checks on all Python files
 	pre-commit install
 	pre-commit run --files *.py
 
-update:
-	@echo "Updating used tools and scripts"
+update: # Update all dependencies and tools to latest versions
+	pur -r requirements.txt
 	pre-commit autoupdate
 
 clean:
