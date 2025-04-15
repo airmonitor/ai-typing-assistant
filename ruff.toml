@@ -60,7 +60,8 @@ ignore = [
     "COM812",
     "ISC001",
     "PLR0917",
-    "ERA001" # Found commented-out code
+    "ERA001", # Found commented-out code
+    "RUF052"
 ]
 
 exclude = [

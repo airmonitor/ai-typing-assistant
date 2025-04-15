@@ -118,11 +118,11 @@ def fix_typos():
         CONTROLLER.tap("v")
 
 
-def on_f9():
+def on_f9(injected=None):  # noqa: ARG001
     fix_typos()
 
 
-def on_f10():
+def on_f10(injected=None):  # noqa: ARG001
     rewrite_selection()
 
 
