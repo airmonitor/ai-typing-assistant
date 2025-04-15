@@ -118,11 +118,11 @@ def fix_typos():
         CONTROLLER.tap("v")
 
 
-def on_f9(injected=None):
+def on_f9():
     fix_typos()
 
 
-def on_f10(injected=None):
+def on_f10():
     rewrite_selection()
 
 

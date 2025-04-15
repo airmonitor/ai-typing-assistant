@@ -1,5 +1,5 @@
 # Set the desired Python interpreter (change if needed)
-PYTHON := python3.13
+PYTHON := python3.11
 VENV := .venv
 STAGE?=ppe
 
