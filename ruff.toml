@@ -61,7 +61,8 @@ ignore = [
     "ISC001",
     "PLR0917",
     "ERA001", # Found commented-out code
-    "RUF052"
+    "RUF052",
+    "ARG001", # https://beta.ruff.rs/docs/rules/#flake8-unused-arguments-arg001
 ]
 
 exclude = [
