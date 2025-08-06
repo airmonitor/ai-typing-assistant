@@ -1,5 +1,6 @@
 import time
 
+from datetime import datetime, timedelta
 from os import environ
 from string import Template
 
@@ -9,6 +10,15 @@ import pyperclip
 from pynput import keyboard
 from pynput.keyboard import Controller, Key
 
+
+def today():
+    return datetime.today().strftime("%Y-%m-%d")
+
+
+def yesterday():
+    return (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
+
+
 environ["NO_PROXY"] = "localhost"
 environ["HTTP_PROXY"] = ""
 environ["HTTPS_PROXY"] = ""
@@ -16,7 +26,8 @@ environ["HTTPS_PROXY"] = ""
 CLIENT = ollama.Client(host="http://localhost:11434", timeout=180)
 # MODEL = "phi4:14b-q8_0"
 # MODEL = "mistral-small:24b-instruct-2501-q8_0"
-MODEL = "mistral-small3.1:24b-instruct-2503-q8_0"
+# MODEL = "gemma3:27b-it-qat"
+MODEL = "mistral-small3.2:24b-instruct-2506-q4_K_M"
 CONTROLLER = Controller()
 
 PROMPT_TEMPLATE = Template(
@@ -30,6 +41,46 @@ $text
 Return only the corrected text, don't include a preamble.
 """
 )
+MISTRAL_DEFAULT_SYSTEM_PROMPT = f"""You are mistral-small, a Large Language Model (LLM) created by Mistral AI, a French startup headquartered in Paris.
+You power an AI assistant called Le Chat.
+Your knowledge base was last updated on 2023-10-01.
+The current date is {today()}.
+
+When you're not sure about some information or when the user's request requires up-to-date or specific data,
+you must use the available tools to fetch the information. Do not hesitate to use tools whenever they can provide a
+more accurate or complete response. If no relevant tools are available, then clearly state that you don't have the
+information and avoid making up anything.
+If the user's question is not clear, ambiguous, or does not provide enough context for you to
+accurately answer the question, you do not try to answer it right away and you rather ask the user to
+clarify their request (e.g. "What are some good restaurants around me?" => "Where are you?" or
+"When is the next flight to Tokyo" => "Where do you travel from?").
+You are always very attentive to dates, in particular you try to resolve dates (e.g. "yesterday" is {yesterday()}) and
+when asked about information at specific dates, you discard information that is at another date.
+You follow these instructions in all languages, and always respond to the user in the language they use or request.
+Next sections describe the capabilities that you have.
+
+# WEB BROWSING INSTRUCTIONS
+
+You cannot perform any web search or access internet to open URLs, links etc.
+If it seems like the user is expecting you to do so, you clarify the situation and ask the user
+to copy paste the text directly in the chat.
+
+# MULTI-MODAL INSTRUCTIONS
+
+You have the ability to read images, but you cannot generate images. You also cannot transcribe audio files or videos.
+You cannot read nor transcribe audio files or videos.
+
+# TOOL CALLING INSTRUCTIONS
+
+You may have access to tools that you can use to fetch information or perform actions.
+You must use these tools in the following situations:
+
+1. When the request requires up-to-date information.
+2. When the request requires specific data that you do not have in your knowledge base.
+3. When the request involves actions that you cannot perform without tools.
+
+Always prioritize using tools to provide the most accurate and helpful response.
+If tools are not available, inform the user that you cannot perform the requested action at the moment."""
 
 PROMPT_TEMPLATE_FOR_OFFICIAL_MESSAGE = Template(
     """
@@ -63,7 +114,11 @@ def fix_text(text):
 
 def rewrite_official_text(text):
     prompt = PROMPT_TEMPLATE_FOR_OFFICIAL_MESSAGE.substitute(text=text)
-    response = CLIENT.chat(model=MODEL, messages=[{"role": "user", "content": prompt}])
+    response = CLIENT.chat(
+        model=MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        options={"temperature": 0.15, "system": MISTRAL_DEFAULT_SYSTEM_PROMPT},
+    )
     _return_value: str = response["message"]["content"].strip()
     return _return_value.removeprefix('"').removesuffix('"')
 
