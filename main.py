@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from os import environ
 from string import Template
 
-import ollama
+import lmstudio as lms
 import pyperclip
 
 from pynput import keyboard
@@ -23,13 +23,10 @@ environ["NO_PROXY"] = "localhost"
 environ["HTTP_PROXY"] = ""
 environ["HTTPS_PROXY"] = ""
 
-CLIENT = ollama.Client(host="http://localhost:11434", timeout=180)
-# MODEL = "phi4:14b-q8_0"
-# MODEL = "mistral-small:24b-instruct-2501-q8_0"
-# MODEL = "gemma3:27b-it-qat"
-MODEL = "mistral-small3.2:24b-instruct-2506-q4_K_M"
-CONTROLLER = Controller()
+MODEL_NAME = "mistralai/mistral-small-3.2"
 
+
+CONTROLLER = Controller()
 PROMPT_TEMPLATE = Template(
     """Your task is to take the text provided and rewrite it into a clear,
     grammatically correct version while preserving the original meaning as closely as possible.
@@ -41,7 +38,8 @@ $text
 Return only the corrected text, don't include a preamble.
 """
 )
-MISTRAL_DEFAULT_SYSTEM_PROMPT = f"""You are mistral-small, a Large Language Model (LLM) created by Mistral AI, a French startup headquartered in Paris.
+MISTRAL_DEFAULT_SYSTEM_PROMPT = f"""
+You are mistral-small, a Large Language Model (LLM) created by Mistral AI, a French startup headquartered in Paris.
 You power an AI assistant called Le Chat.
 Your knowledge base was last updated on 2023-10-01.
 The current date is {today()}.
@@ -80,7 +78,11 @@ You must use these tools in the following situations:
 3. When the request involves actions that you cannot perform without tools.
 
 Always prioritize using tools to provide the most accurate and helpful response.
-If tools are not available, inform the user that you cannot perform the requested action at the moment."""
+If tools are not available, inform the user that you cannot perform the requested action at the moment.
+
+Return output in the original language in which that message was written.
+
+"""
 
 PROMPT_TEMPLATE_FOR_OFFICIAL_MESSAGE = Template(
     """
@@ -106,24 +108,58 @@ PROMPT_TEMPLATE_FOR_OFFICIAL_MESSAGE = Template(
 
 
 def fix_text(text):
+    """
+    Correct the provided text
+
+    """
     prompt = PROMPT_TEMPLATE.substitute(text=text)
-    response = CLIENT.chat(model=MODEL, messages=[{"role": "user", "content": prompt}], keep_alive=3600)
-    _return_value: str = response["message"]["content"].strip()
-    return _return_value.removeprefix('"').removesuffix('"')
+    model = lms.llm(MODEL_NAME)
+    response = model.respond(prompt)
+    return response.content.removeprefix('"').removesuffix('"')
 
 
 def rewrite_official_text(text):
+    """
+    Parameters:
+        text (str): The input text to be rewritten in a more official and professional manner
+
+    Functionality:
+        This function takes an input text string, formats it according to a predefined template for official messages,
+        and processes it through an LLM model to generate a more professional,
+        polite, and grammatically correct version.
+        The function uses a specific system prompt to guide the model's behavior and applies a low temperature setting
+        for more deterministic output.
+
+    Arguments:
+        text: The input string to be rewritten
+
+    Returns:
+        str: The processed text with improved professionalism and correctness, without surrounding quotation marks
+    """
     prompt = PROMPT_TEMPLATE_FOR_OFFICIAL_MESSAGE.substitute(text=text)
-    response = CLIENT.chat(
-        model=MODEL,
-        messages=[{"role": "user", "content": prompt}],
-        options={"temperature": 0.15, "system": MISTRAL_DEFAULT_SYSTEM_PROMPT},
-    )
-    _return_value: str = response["message"]["content"].strip()
-    return _return_value.removeprefix('"').removesuffix('"')
+    lms.Chat(initial_prompt=MISTRAL_DEFAULT_SYSTEM_PROMPT)
+    model = lms.llm(MODEL_NAME)
+    response = model.respond(prompt, config={"temperature": 0.15})
+    return response.content.removeprefix('"').removesuffix('"')
 
 
 def rewrite_selection():
+    """
+    Parameters:
+        None: This function operates on the current text selection in the active application
+
+    Functionality:
+        This function performs a sequence of operations to rewrite selected text in
+        a more official and professional manner.
+        It copies the current selection to clipboard, processes it through an LLM model for official text rewriting,
+        and then pastes the processed text back to replace the original selection.
+
+    Arguments:
+        None: The function works with the currently selected text in the active application
+
+    Returns:
+        None: This function doesn't return any value but modifies the selected text in the active application
+    """
     # 1. Copy selection to clipboard
     with CONTROLLER.pressed(Key.cmd):
         CONTROLLER.tap("c")
@@ -149,6 +185,21 @@ def rewrite_selection():
 
 
 def fix_typos():
+    """
+    Parameters:
+        None: This function operates on the current text selection in the active application
+
+    Functionality:
+        This function performs a sequence of operations to correct spelling and grammar errors in the selected text.
+        It copies the current selection to clipboard, processes it through an LLM model for typo correction,
+        and then pastes the corrected text back to replace the original selection.
+
+    Arguments:
+        None: The function works with the currently selected text in the active application
+
+    Returns:
+        None: This function doesn't return any value but modifies the selected text in the active application
+    """
     # 1. Copy selection to clipboard
     with CONTROLLER.pressed(Key.cmd):
         CONTROLLER.tap("c")
