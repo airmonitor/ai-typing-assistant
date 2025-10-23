@@ -46,6 +46,7 @@ repos:
           - "pydantic>=2.5.2"
           - "types-retry"
           - "types-requests"
+          - "types-pytz"
   - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
     rev: "v1.4.0"
     hooks:
