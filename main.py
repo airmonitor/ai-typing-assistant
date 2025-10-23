@@ -4,27 +4,35 @@ from datetime import datetime, timedelta
 from os import environ
 from string import Template
 
-import lmstudio as lms
 import pyperclip
+import pytz
 
+from openai import OpenAI
 from pynput import keyboard
 from pynput.keyboard import Controller, Key
 
 
 def today():
-    return datetime.today().strftime("%Y-%m-%d")
+    return datetime.now(pytz.timezone("Europe/Warsaw")).strftime("%Y-%m-%d")
 
 
 def yesterday():
-    return (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
+    return (datetime.now(pytz.timezone("Europe/Warsaw")) - timedelta(days=1)).strftime("%Y-%m-%d")
 
 
 environ["NO_PROXY"] = "localhost"
 environ["HTTP_PROXY"] = ""
 environ["HTTPS_PROXY"] = ""
 
-MODEL_NAME = "mistralai/mistral-small-3.2"
+# LiteLLM Proxy configuration
+LITELLM_BASE_URL = "http://localhost:4000"
+MODEL_NAME = "mistral-medium"
 
+# Initialize OpenAI client pointing to LiteLLM proxy
+client = OpenAI(
+    api_key="dummy-key",  # pragma: allowlist secret, LiteLLM proxy doesn't require a real key for local models
+    base_url=LITELLM_BASE_URL,
+)
 
 CONTROLLER = Controller()
 PROMPT_TEMPLATE = Template(
@@ -38,6 +46,7 @@ $text
 Return only the corrected text, don't include a preamble.
 """
 )
+
 MISTRAL_DEFAULT_SYSTEM_PROMPT = f"""
 You are mistral-small, a Large Language Model (LLM) created by Mistral AI, a French startup headquartered in Paris.
 You power an AI assistant called Le Chat.
@@ -107,15 +116,37 @@ PROMPT_TEMPLATE_FOR_OFFICIAL_MESSAGE = Template(
 )
 
 
+def call_litellm(prompt, system_prompt=None, temperature=0.7):
+    """
+    Helper function to call LiteLLM proxy using OpenAI client
+
+    Parameters:
+        prompt (str): The user prompt to send to the model
+        system_prompt (str, optional): System prompt to guide model behavior
+        temperature (float): Temperature setting for response generation
+
+    Returns:
+        str: The model's response content
+    """
+    messages = []
+
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+
+    messages.append({"role": "user", "content": prompt})
+
+    response = client.chat.completions.create(model=MODEL_NAME, messages=messages, temperature=temperature)
+
+    return response.choices[0].message.content
+
+
 def fix_text(text):
     """
     Correct the provided text
-
     """
     prompt = PROMPT_TEMPLATE.substitute(text=text)
-    model = lms.llm(MODEL_NAME)
-    response = model.respond(prompt)
-    return response.content.removeprefix('"').removesuffix('"')
+    response_content = call_litellm(prompt)
+    return response_content.removeprefix('"').removesuffix('"')
 
 
 def rewrite_official_text(text):
@@ -137,10 +168,8 @@ def rewrite_official_text(text):
         str: The processed text with improved professionalism and correctness, without surrounding quotation marks
     """
     prompt = PROMPT_TEMPLATE_FOR_OFFICIAL_MESSAGE.substitute(text=text)
-    lms.Chat(initial_prompt=MISTRAL_DEFAULT_SYSTEM_PROMPT)
-    model = lms.llm(MODEL_NAME)
-    response = model.respond(prompt, config={"temperature": 0.15})
-    return response.content.removeprefix('"').removesuffix('"')
+    response_content = call_litellm(prompt, system_prompt=MISTRAL_DEFAULT_SYSTEM_PROMPT, temperature=0.15)
+    return response_content.removeprefix('"').removesuffix('"')
 
 
 def rewrite_selection():

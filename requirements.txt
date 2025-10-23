@@ -1,4 +1,6 @@
+litellm==1.78.7
+lmstudio==1.5.0
 ollama==0.5.1
+openai==2.6.0
 pynput==1.7.8
 pyperclip==1.9.0
-lmstudio==1.5.0
